@@ -76,6 +76,7 @@ public class CubeRenderer {
 	 */
 	public void renderModelElement(Model model, ModelElement modelElement) {
 		bindModelTexture(model);
+		setTexParemeters();
 		
 		GL11.glPushMatrix();
 		{
@@ -237,11 +238,17 @@ public class CubeRenderer {
 	 */
 	public void bindModelTexture(Model model) {
 		model.getAtlas().bind();
-		
+		setTexParemeters();
+	}
+	
+	/**
+	 * Set filtering etc.
+	 */
+	public void setTexParemeters() {
 		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
 		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
 		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_CLAMP);
-		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_CLAMP);
+		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_CLAMP);		
 	}
 	
 	/**

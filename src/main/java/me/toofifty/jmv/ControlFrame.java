@@ -126,13 +126,13 @@ public class ControlFrame extends JFrame implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 		switch (e.getActionCommand()) {
 		case "update":
-			JSONModelViewer.modelViewer.updateModel(getJSONModel());
+			JSONModelViewer.instance.scheduleModelUpdate(getJSONModel());
 			break;
 		case "toggleFloor":
-			JSONModelViewer.modelViewer.toggleFloor();
+			JSONModelViewer.instance.toggleFloor();
 			break;
 		case "isometric":
-			JSONModelViewer.modelViewer.setIso();
+			JSONModelViewer.instance.setIso();
 			break;
 		}
 	}

@@ -17,6 +17,7 @@ import org.newdawn.slick.opengl.Texture;
 import org.newdawn.slick.opengl.TextureLoader;
 import org.newdawn.slick.util.ResourceLoader;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -89,6 +90,17 @@ public class FileLoader {
 			return loadImage("assets/" + splitKey[0] + "/textures/" + splitKey[1]);
 		} else {
 			return loadImage("assets/minecraft/textures/" + key);
+		}
+	}
+	
+	public static boolean isValidJSON(String json) {
+		try {
+			new ObjectMapper().readTree(json);
+			return true;
+		} catch (JsonProcessingException e) {
+			return false;
+		} catch (IOException e) {
+			return false;
 		}
 	}
 	

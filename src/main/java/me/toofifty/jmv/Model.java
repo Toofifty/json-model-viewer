@@ -39,6 +39,9 @@ public class Model {
 	 * @param rootNode
 	 */
 	public Model(JsonNode rootNode) {
+		if (rootNode == null) {
+			return;
+		}		
 		final JsonNode parentNode = rootNode.path("parent");
 		if (parentNode != null && parentNode.toString() != "") {
 			parent = parentNode.toString(); // model-level parent, won't change

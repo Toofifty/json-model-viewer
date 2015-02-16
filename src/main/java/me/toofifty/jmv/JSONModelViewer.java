@@ -1,5 +1,9 @@
 package me.toofifty.jmv;
 
+import java.awt.Rectangle;
+
+import javax.swing.JFrame;
+
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
@@ -24,7 +28,7 @@ import org.newdawn.slick.opengl.Texture;
 public class JSONModelViewer {
 
 	/** Main instance */
-	public static JSONModelViewer modelViewer;
+	public static JSONModelViewer instance;
 	
 	/* FPS Info */
 	private long lastFrame;
@@ -38,6 +42,7 @@ public class JSONModelViewer {
 	private CubeRenderer renderer;
 	private MouseControl mouse;
 	private ControlFrame controlFrame;
+	private ApplicationControl frame;
 	
 	private Texture floor;
 	
@@ -47,14 +52,16 @@ public class JSONModelViewer {
 	/** New model json string */
 	private String jsonModel;
 	/** Model update flag */
-	private boolean needsUpdate;
+	private boolean modelNeedsUpdate = false;
+	private boolean displayNeedsResize = true;
 	private boolean showFloor = true;
 
 	/**
 	 * Main function, init and loop
 	 */
 	public void start() {
-		controlFrame = new ControlFrame();
+		//controlFrame = new ControlFrame();
+		frame = new ApplicationControl();
 		getDelta();
 		lastFPS = getTime();
 		
@@ -70,12 +77,16 @@ public class JSONModelViewer {
 		while (!Display.isCloseRequested()) {
 			int delta = getDelta();
 			
-			if (needsUpdate) {
+			if (modelNeedsUpdate) {
 				Model newModel = new Model(FileLoader.loadJson(jsonModel));
-				if (newModel != null) {
+				if (newModel != null && newModel.getElements().size() != 0) {
 					model = newModel;
 				}
-				needsUpdate = false;
+				modelNeedsUpdate = false;
+			}
+			
+			if (displayNeedsResize) {
+				resize();
 			}
 
 			pollInput(delta);
@@ -87,7 +98,8 @@ public class JSONModelViewer {
 		}
 
 		Display.destroy();
-		controlFrame.dispose();
+		//controlFrame.dispose();
+		frame.dispose();
 	}
 	
 	/**
@@ -95,7 +107,8 @@ public class JSONModelViewer {
 	 */
 	private void initGL() {
 		try {
-			Display.setDisplayMode(new DisplayMode(800, 600));
+			Display.setParent(frame.getCanvas());
+			Display.setResizable(true);
 			Display.create();
 		} catch (LWJGLException e) {
 			e.printStackTrace();
@@ -103,10 +116,11 @@ public class JSONModelViewer {
 		}
 
 		GL11.glEnable(GL11.GL_TEXTURE_2D);
-		
+
+		GL11.glViewport(0, 0, frame.getWidth(), frame.getHeight());
 		GL11.glMatrixMode(GL11.GL_PROJECTION);
 		GL11.glLoadIdentity();
-		GLU.gluPerspective(70, (float) Display.getWidth() / (float) Display.getHeight(), 0.3F, 100);
+		GLU.gluPerspective(70, (float) frame.getWidth() / (float) frame.getHeight(), 0.3F, 100);
 		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 		
 		GL11.glEnable(GL11.GL_DEPTH_TEST);
@@ -115,6 +129,25 @@ public class JSONModelViewer {
     	GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		
 		GL11.glClearColor(0.375F, 0.5625F, 0.75F, 1F);
+	}
+	
+	/**
+	 * Resize OpenGL
+	 */
+	protected void resize() {
+		GL11.glViewport(0, 0, frame.getWidth() - 200, frame.getHeight());
+		GL11.glMatrixMode(GL11.GL_PROJECTION);
+		GL11.glLoadIdentity();
+		GLU.gluPerspective(70, (float) (frame.getWidth() - 200) / (float) frame.getHeight(), 0.3F, 100);
+		GL11.glMatrixMode(GL11.GL_MODELVIEW);
+		displayNeedsResize = false;
+	}
+	
+	/**
+	 * Thread-safe resizer.
+	 */
+	public void scheduleResize() {
+		displayNeedsResize = true;
 	}
 
 	/**
@@ -142,10 +175,10 @@ public class JSONModelViewer {
 	 * 
 	 * @param jsonModel
 	 */
-	public void updateModel(String jsonModel) {
+	public void scheduleModelUpdate(String jsonModel) {
 		if (jsonModel != null && jsonModel != "") {
 			this.jsonModel = jsonModel;
-			this.needsUpdate = true;
+			this.modelNeedsUpdate = true;
 		}
 	}
 
@@ -185,6 +218,16 @@ public class JSONModelViewer {
 		int delta = (int) (time - lastFrame);
 		lastFrame = time;
 		return delta;
+	}
+	
+	public JFrame getFrame() {
+		return frame;
+	}
+	
+	public Rectangle getCentreScreen(int width, int height) {
+		int x = frame.getWidth() / 2 + frame.getX() - width / 2;
+		int y = frame.getHeight() / 2 + frame.getY() - height / 2;
+		return new Rectangle(x, y, width, height);		
 	}
 
 	/**
@@ -239,8 +282,8 @@ public class JSONModelViewer {
 	 * @param argv
 	 */
 	public static void main(String[] argv) {
-		modelViewer = new JSONModelViewer();
-		modelViewer.start();
+		instance = new JSONModelViewer();
+		instance.start();
 	}
 
 }
