@@ -4,6 +4,10 @@ import java.awt.Rectangle;
 
 import javax.swing.JFrame;
 
+import me.toofifty.jmv.editor.EditorAction;
+import me.toofifty.jmv.gui.ApplicationControl;
+import me.toofifty.jmv.model.Model;
+
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
@@ -41,8 +45,8 @@ public class JSONModelViewer {
 	/* Other classes */
 	private CubeRenderer renderer;
 	private MouseControl mouse;
-	private ControlFrame controlFrame;
 	private ApplicationControl frame;
+	private EditorAction editorAction;
 	
 	private Texture floor;
 	
@@ -60,8 +64,8 @@ public class JSONModelViewer {
 	 * Main function, init and loop
 	 */
 	public void start() {
-		//controlFrame = new ControlFrame();
-		frame = new ApplicationControl();
+		editorAction = new EditorAction();
+		frame = new ApplicationControl(editorAction);
 		getDelta();
 		lastFPS = getTime();
 		
@@ -98,7 +102,6 @@ public class JSONModelViewer {
 		}
 
 		Display.destroy();
-		//controlFrame.dispose();
 		frame.dispose();
 	}
 	
@@ -134,11 +137,16 @@ public class JSONModelViewer {
 	/**
 	 * Resize OpenGL
 	 */
-	protected void resize() {
-		GL11.glViewport(0, 0, frame.getWidth() - 200, frame.getHeight());
+	protected void resize() {		
+		int width = Display.getWidth();
+		/*if (frame.getTextEditorPanel().isVisible()) {
+			width -= frame.getTextEditorPanel().getWidth();
+		}*/
+		
+		GL11.glViewport(0, 0, width, Display.getHeight());
 		GL11.glMatrixMode(GL11.GL_PROJECTION);
 		GL11.glLoadIdentity();
-		GLU.gluPerspective(70, (float) (frame.getWidth() - 200) / (float) frame.getHeight(), 0.3F, 100);
+		GLU.gluPerspective(70, (float) (width) / (float) Display.getHeight(), 0.3F, 100);
 		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 		displayNeedsResize = false;
 	}

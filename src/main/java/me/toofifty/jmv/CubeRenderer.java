@@ -1,7 +1,9 @@
 package me.toofifty.jmv;
 
-import me.toofifty.jmv.ModelElement.Dir;
-import me.toofifty.jmv.ModelElement.Face;
+import me.toofifty.jmv.model.Face;
+import me.toofifty.jmv.model.Model;
+import me.toofifty.jmv.model.Element;
+import me.toofifty.jmv.model.Element.Dir;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Vector2f;
@@ -63,8 +65,8 @@ public class CubeRenderer {
 	 * @param model
 	 */
 	public void renderModel(Model model) {
-		for (ModelElement modelElement : model.getElements()) {
-			renderModelElement(model, modelElement);
+		for (Element element : model.getElements()) {
+			renderModelElement(model, element);
 		}
 	}
 	
@@ -72,9 +74,9 @@ public class CubeRenderer {
 	 * Render an element
 	 * 
 	 * @param model
-	 * @param modelElement
+	 * @param element
 	 */
-	public void renderModelElement(Model model, ModelElement modelElement) {
+	public void renderModelElement(Model model, Element element) {
 		bindModelTexture(model);
 		setTexParemeters();
 		
@@ -86,20 +88,20 @@ public class CubeRenderer {
 			GL11.glTranslatef(-8F, -8F, -8F);
 
 			// Handle rotation
-			if (modelElement.getAngle() != 0) {
-				Vector3f origin = modelElement.getOrigin();
+			if (element.getAngle() != 0) {
+				Vector3f origin = element.getOrigin();
 				// Translate to element's rotation "origin"
 				GL11.glTranslatef(origin.x, origin.y, origin.z);
 				// Rotate about said origin
-				switch (modelElement.getAxis()) {
+				switch (element.getAxis()) {
 				case X:
-					GL11.glRotatef(modelElement.getAngle(), 1, 0, 0);
+					GL11.glRotatef(element.getAngle(), 1, 0, 0);
 					break;
 				case Y:
-					GL11.glRotatef(modelElement.getAngle(), 0, 1, 0);
+					GL11.glRotatef(element.getAngle(), 0, 1, 0);
 					break;
 				case Z:
-					GL11.glRotatef(modelElement.getAngle(), 0, 0, 1);
+					GL11.glRotatef(element.getAngle(), 0, 0, 1);
 					break;
 				default:
 					break;
@@ -109,18 +111,18 @@ public class CubeRenderer {
 			}
 
 			// Get element's start and end points
-			Vector3f from = modelElement.getFrom();
-			Vector3f to = modelElement.getTo();
+			Vector3f from = element.getFrom();
+			Vector3f to = element.getTo();
 
 			// 'FROM' is NORTH, WEST, and DOWN
 			// 'TO' is SOUTH, EAST, and UP
 
-			Face north = modelElement.getFace(Dir.NORTH);
-			Face south = modelElement.getFace(Dir.SOUTH);
-			Face east = modelElement.getFace(Dir.EAST);
-			Face west = modelElement.getFace(Dir.WEST);
-			Face down = modelElement.getFace(Dir.DOWN);
-			Face up = modelElement.getFace(Dir.UP);
+			Face north = element.getFace(Dir.NORTH);
+			Face south = element.getFace(Dir.SOUTH);
+			Face east = element.getFace(Dir.EAST);
+			Face west = element.getFace(Dir.WEST);
+			Face down = element.getFace(Dir.DOWN);
+			Face up = element.getFace(Dir.UP);
 
 			GL11.glBegin(GL11.GL_QUADS);
 

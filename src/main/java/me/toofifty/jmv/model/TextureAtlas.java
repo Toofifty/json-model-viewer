@@ -1,4 +1,4 @@
-package me.toofifty.jmv;
+package me.toofifty.jmv.model;
 
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;

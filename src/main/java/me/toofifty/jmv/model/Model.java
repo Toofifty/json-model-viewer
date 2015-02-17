@@ -1,4 +1,4 @@
-package me.toofifty.jmv;
+package me.toofifty.jmv.model;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -10,8 +10,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import me.toofifty.jmv.ModelElement.Dir;
-import me.toofifty.jmv.ModelElement.Face;
+import me.toofifty.jmv.FileLoader;
+import me.toofifty.jmv.model.Element.Dir;
 
 import org.lwjgl.util.vector.Vector2f;
 import org.newdawn.slick.opengl.Texture;
@@ -31,7 +31,7 @@ public class Model {
 	private String parent;	
 	private HashMap<String, BufferedImage> imageMap = new HashMap<String, BufferedImage>();	
 	private TextureAtlas texture;
-	private List<ModelElement> elements = new ArrayList<>();
+	private List<Element> elements = new ArrayList<>();
 	
 	/**
 	 * Loads a model from a JsonNode.
@@ -114,13 +114,13 @@ public class Model {
 			Iterator<JsonNode> elementIter = elementsNode.iterator();
 			while (elementIter.hasNext()) {
 				final JsonNode elementNode = elementIter.next();
-				final ModelElement modelElement = new ModelElement(this, elementNode);
-				elements.add(modelElement);
+				final Element element = new Element(this, elementNode);
+				elements.add(element);
 			}
 		}
 	}
 	
-	public List<ModelElement> getElements() {
+	public List<Element> getElements() {
 		return this.elements;
 	}
 	
