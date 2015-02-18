@@ -6,9 +6,7 @@ Provides a quick and easy way to display and visualize models in the dreaded .js
 
 ***
 
-Ensure the jar file is in the same directory as your '/assets/' folder, as it loads all textures and parent models in a similar fashion to regular Minecraft.
-
-Run the jar, and paste your model's code into the control frame's text area. Click 'Update model' to display your model in the OpenGL window. If nothing displays, your json file may be invalid.
+The jar no longer needs to be placed in a certain directory, as of v1.1.1+ and instead finds the correct assets folder from the load/save path. (Textures may still not load, hence no v1.1.1 jar release.)
 
 ![v1.0.0 screenshot](img/example_sack.png)
 
