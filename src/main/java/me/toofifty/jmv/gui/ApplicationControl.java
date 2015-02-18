@@ -56,6 +56,7 @@ import javax.swing.DefaultComboBoxModel;
 import me.toofifty.jmv.editor.EditorAction;
 import me.toofifty.jmv.model.Element;
 import me.toofifty.jmv.model.Element.Axis;
+import me.toofifty.jmv.model.Model;
 
 import javax.swing.border.BevelBorder;
 import javax.swing.border.MatteBorder;
@@ -80,6 +81,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
+import java.io.IOException;
 import java.awt.event.InputMethodListener;
 import java.awt.event.InputMethodEvent;
 
@@ -691,6 +693,24 @@ public class ApplicationControl extends JFrame {
 			}
 		});
 		mnTools.add(mntmRefreshModel);
+		
+		JMenuItem mntmPrintJsonTo = new JMenuItem("Refresh JSON");
+		mntmPrintJsonTo.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				try {
+					Model m = JSONModelViewer.instance.model;
+					if (m != null) {
+						tpTextEditor.setText(m.getJSON());
+						SyntaxHighlighter.highlight(tpTextEditor);
+					} else {
+						System.out.println("Bad model.");
+					}
+				} catch (IOException e) {
+					System.out.println("JSON generation failed.");
+				}
+			}
+		});
+		mnTools.add(mntmPrintJsonTo);
 		
 		JPanel panelCanvas = new JPanel();
 		panelCanvas.setBackground(SystemColor.menu);

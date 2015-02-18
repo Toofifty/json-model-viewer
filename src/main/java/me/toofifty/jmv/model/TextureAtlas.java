@@ -10,6 +10,8 @@ import java.util.Map.Entry;
 
 import javax.imageio.ImageIO;
 
+import me.toofifty.jmv.FileLoader;
+
 import org.lwjgl.Sys;
 import org.lwjgl.util.vector.Vector2f;
 import org.newdawn.slick.opengl.Texture;
@@ -37,15 +39,13 @@ public class TextureAtlas {
 	 * 
 	 * @param textures
 	 */
-	public TextureAtlas(HashMap<String, BufferedImage> textures) {
-		System.out.println(textures.size());
-		
+	public TextureAtlas(HashMap<String, String> textures) {
 		width = 0;
 		height = 0;
 		Iterator textureIter = textures.entrySet().iterator(); 
 		while (textureIter.hasNext()) {
 			final Entry e = (Entry) textureIter.next();
-			final BufferedImage t = (BufferedImage) e.getValue();
+			final BufferedImage t = FileLoader.loadModelImage(e.getValue().toString());
 			width += t.getWidth();
 			height = (int) Math.max(t.getHeight(), height);
 		}
@@ -63,7 +63,7 @@ public class TextureAtlas {
 		textureIter = textures.entrySet().iterator(); 
 		while (textureIter.hasNext()) {
 			final Entry e = (Entry) textureIter.next();
-			final BufferedImage t = (BufferedImage) e.getValue();
+			final BufferedImage t = FileLoader.loadModelImage(e.getValue().toString());
 			final String s = (String) e.getKey();
 			
 			graphics.drawImage(t, currentX, currentY, null);
@@ -85,13 +85,14 @@ public class TextureAtlas {
 	 * @param textureName
 	 * @return texture coordinates
 	 */
-	public Vector2f getTextureCoords(String textureName) {
+	public Vector2f getTextureCoords(Model model, String textureName) {
 		if (textureName == null) {
 			System.out.println("Null texture!");
+			model.getReferenceStrings().printStrings();
 			System.exit(0);
 		}
 		final Vector2f vec = textureMap.get(textureName);
-		if (vec == null) return getTextureCoords(ReferenceStrings.getString(textureName));
+		if (vec == null) return getTextureCoords(model, model.getReferenceStrings().getString(textureName));
 		return vec;
 	}
 	

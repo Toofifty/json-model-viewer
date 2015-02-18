@@ -13,7 +13,7 @@ public class Face {
 	private Vector2f uv_to;
 	private String texture;
 	private Dir cullface;
-	private int rotation;
+	private int rotation = 0;
 
 	private Model model;
 
@@ -79,9 +79,27 @@ public class Face {
 			rotation = rotationNode.asInt();
 		}
 	}
+	
+	/**
+	 * Set the cullface to a Dir
+	 * 
+	 * @param dir
+	 */
+	public void setCullface(Dir dir) {
+		this.cullface = dir;
+	}
+	
+	/**
+	 * Set the rotation int
+	 * 
+	 * @param rotation
+	 */
+	public void setRotation(int rotation) {
+		this.rotation = rotation;
+	}
 
 	/**
-	 * UV-From getter
+	 * UV-From adder
 	 * 
 	 * @return uv_from + textureCoords
 	 */
@@ -91,13 +109,31 @@ public class Face {
 	}
 
 	/**
-	 * UV-To getter
+	 * UV-To adder
 	 * 
 	 * @return uv_to + textureCoords
 	 */
 	public Vector2f getUVTo(Vector2f textureCoords) {
 		return new Vector2f(textureCoords.x + uv_to.x / model.getAtlas().width,
 				textureCoords.y + uv_to.y / model.getAtlas().height);
+	}
+	
+	/**
+	 * UV-From pure getter
+	 * 
+	 * @return uv_from
+	 */
+	public Vector2f getUVFrom() {
+		return uv_from;
+	}
+	
+	/**
+	 * UV-To pure getter
+	 * 
+	 * @return uv_to
+	 */
+	public Vector2f getUVTo() {
+		return uv_to;
 	}
 
 	/**
@@ -107,6 +143,24 @@ public class Face {
 	 */
 	public String getTexture() {
 		return texture;
+	}
+	
+	/**
+	 * Get cullface as Dir
+	 * 
+	 * @return dir cullface
+	 */
+	public Dir getCullface() {
+		return cullface;
+	}
+	
+	/**
+	 * Get rotation int
+	 * 
+	 * @return int rotation
+	 */
+	public int getRotation() {
+		return rotation;
 	}
 
 }

@@ -32,9 +32,9 @@ public class FileLoader {
 	public static String assetsDir;
 	
 	public static void setAssetsDirFromFile(File file) {
-		String fileLoc = file.getAbsolutePath();
+		String fileLoc = file.getAbsolutePath().toString();
 		if (fileLoc.contains("\\assets\\")) {
-			assetsDir = fileLoc.split("\\assets")[0] + "\\assets";
+			assetsDir = fileLoc.split("assets")[0] + "assets";
 			System.out.println("New assetsDir: " + assetsDir);
 		} else {
 			assetsDir = "";
@@ -59,7 +59,7 @@ public class FileLoader {
 			}
 			return ret;
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.out.println("Unable to find texture for " + key + ".png, using default texture.");
 		}
 		return loadTexture("null");
 	}
@@ -94,7 +94,7 @@ public class FileLoader {
 			}
 			return ret;
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.out.println("Unable to find texture for " + key + ".png, using default texture.");
 		}
 		return loadImage("null");
 	}

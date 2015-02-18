@@ -1,6 +1,8 @@
 package me.toofifty.jmv.model;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
 /**
  * Provide a conversion for parent- reference variables
@@ -15,7 +17,7 @@ public class ReferenceStrings {
 	/**
 	 * Map of String -> String
 	 */
-	private static HashMap<String, String> references = new HashMap<>();
+	private HashMap<String, String> references = new HashMap<>();
 	
 	/**
 	 * Get reference from string
@@ -23,7 +25,7 @@ public class ReferenceStrings {
 	 * @param var
 	 * @return referred texture string
 	 */
-	public static String getString(String var) {
+	public String getString(String var) {
 		return references.get(var);
 	}
 	
@@ -33,8 +35,22 @@ public class ReferenceStrings {
 	 * @param var new var
 	 * @param var2 #var
 	 */
-	public static void add(String var, String var2) {
+	public void add(String var, String var2) {
 		references.put(var, var2);
+	}
+	
+	public HashMap<String, String> getReferenceMap() {
+		return references;
+	}
+	
+	public void printStrings() {
+		Iterator stringIter = references.entrySet().iterator();
+		while (stringIter.hasNext()) {
+			final Entry e = (Entry) stringIter.next();
+			final String field = e.getKey().toString();
+			final String value = e.getValue().toString();
+			System.out.println(field + " mapped to " + value);
+		}
 	}
 
 }

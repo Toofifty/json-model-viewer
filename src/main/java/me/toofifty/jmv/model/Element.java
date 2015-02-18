@@ -34,12 +34,14 @@ public class Element {
 	private Vector3f origin = new Vector3f(8F, 8F, 8F);
 	private Axis axis;
 	private float angle = 0;
+	private boolean rescale = false;
 	
 	// Faces
 	private HashMap<Dir, Face> faces = new HashMap<Dir, Face>();
 	
 	// Object name
 	private String name;
+	private boolean shade = true;
 
 	/**
 	 * Create a new Element with float values.
@@ -133,7 +135,12 @@ public class Element {
 		
 		final JsonNode commentNode = rootNode.path("__comment");
 		if (commentNode != null && commentNode.toString() != "") {
-			this.name = commentNode.toString();
+			setName(commentNode.toString());
+		}
+		
+		final JsonNode nameNode = rootNode.path("__name");
+		if (commentNode != null && commentNode.toString() != "") {
+			setName(commentNode.toString());
 		}
 	}
 
@@ -177,7 +184,25 @@ public class Element {
 	 * @param name
 	 */
 	public void setName(String name) {
-		this.name = name;
+		this.name = name.replace("\"", "");
+	}
+	
+	/**
+	 * Set shade value
+	 * 
+	 * @param shade
+	 */
+	public void setShade(boolean shade) {
+		this.shade = shade;
+	}
+	
+	/**
+	 * Set rotation rescale value
+	 * 
+	 * @param shade
+	 */
+	public void setRescale(boolean rescale) {
+		this.rescale = rescale;
 	}
 	
 	/**
@@ -217,6 +242,24 @@ public class Element {
 	}
 	
 	/**
+	 * Axis getter
+	 * 
+	 * @return axis
+	 */
+	public String getAxisString() {
+		switch (axis) {
+		case X:
+			return "x";
+		case Y:
+			return "y";
+		case Z:
+			return "z";
+		default:
+			return null;
+		}
+	}
+	
+	/**
 	 * Angle getter
 	 * 
 	 * @return angle
@@ -236,12 +279,64 @@ public class Element {
 	}
 	
 	/**
+	 * Convert dir to string equivalent
+	 * 
+	 * @param dir
+	 * @return string dir
+	 */
+	public String getDirString(Dir dir) {
+		switch (dir) {
+		case NORTH:
+			return "north";
+		case SOUTH:
+			return "south";
+		case EAST:
+			return "east";
+		case WEST:
+			return "west";
+		case UP:
+			return "up";
+		case DOWN:
+			return "down";
+		default:
+			return null;
+		}
+	}
+	
+	/**
+	 * Get all faces as HashMap
+	 * 
+	 * @return map<Dir, Face>
+	 */
+	public HashMap<Dir, Face> getFaces() {
+		return faces;
+	}
+	
+	/**
 	 * Get object name for GUI
 	 * 
 	 * @return name
 	 */
 	public String getName() {
 		return name;
+	}
+	
+	/**
+	 * Get shade
+	 * 
+	 * @return name
+	 */
+	public boolean getShade() {
+		return shade;
+	}
+	
+	/**
+	 * Get rescale
+	 * 
+	 * @return name
+	 */
+	public boolean getRescale() {
+		return rescale;
 	}
 
 	/**
