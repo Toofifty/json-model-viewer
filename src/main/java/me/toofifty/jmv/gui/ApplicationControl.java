@@ -93,6 +93,9 @@ public class ApplicationControl extends JFrame {
 	private JTabbedPane tabbedPane;
 	private JScrollPane spTextEditor;
 	private Canvas canvas;
+	private JTextPane tpTextEditor;
+	private JMenuItem mntmSaveAs;
+	private JMenuItem mntmSave;
 
 	/**
 	 * Create the frame.
@@ -124,15 +127,29 @@ public class ApplicationControl extends JFrame {
 		mnFile.add(mntmNew);
 		
 		JMenuItem mntmOpen = new JMenuItem("Open...");
-		mntmOpen.setEnabled(false);
+		mntmOpen.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				ea.openModel();
+			}
+		});
 		mnFile.add(mntmOpen);
 		
-		JMenuItem mntmSave = new JMenuItem("Save");
+		mntmSave = new JMenuItem("Save");
+		mntmSave.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				ea.saveModel();
+			}
+		});
 		mntmSave.setEnabled(false);
 		mnFile.add(mntmSave);
 		
-		JMenuItem mntmSaveAs = new JMenuItem("Save As...");
+		mntmSaveAs = new JMenuItem("Save As...");
 		mntmSaveAs.setEnabled(false);
+		mntmSaveAs.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				ea.saveAsModel();
+			}
+		});
 		mnFile.add(mntmSaveAs);
 		
 		JSeparator separator_1 = new JSeparator();
@@ -621,7 +638,7 @@ public class ApplicationControl extends JFrame {
 		spTextEditor = new JScrollPane();
 		splitPane.setRightComponent(spTextEditor);
 		
-		JTextPane tpTextEditor = new JTextPane();
+		tpTextEditor = new JTextPane();
 		tpTextEditor.setBackground(Color.DARK_GRAY);
 		tpTextEditor.setForeground(SystemColor.text);
 		tpTextEditor.addKeyListener(new KeyAdapter() {
@@ -655,7 +672,7 @@ public class ApplicationControl extends JFrame {
 				if (FileLoader.isValidJSON(json)) {
 					JSONModelViewer.instance.scheduleModelUpdate(json);
 				} else {
-					JOptionPane.showConfirmDialog(ApplicationControl.this, "Invalid JSON!", "JSON Parsing Error", JOptionPane.WARNING_MESSAGE);
+					JOptionPane.showMessageDialog(ApplicationControl.this, "Invalid JSON!", "JSON Parsing Error", JOptionPane.WARNING_MESSAGE);
 				}
 			}
 		});
@@ -711,5 +728,20 @@ public class ApplicationControl extends JFrame {
 	}
 	public JScrollPane getTextEditorPanel() {
 		return spTextEditor;
+	}
+	public JTextPane getTextEditor() {
+		return tpTextEditor;
+	}
+	public void enableSaves() {
+		if (!mntmSave.isEnabled()) {
+			mntmSave.setEnabled(true);
+			mntmSaveAs.setEnabled(true);
+		}
+	}
+	public void disableSaves() {
+		if (mntmSave.isEnabled()) {
+			mntmSave.setEnabled(false);
+			mntmSaveAs.setEnabled(false);
+		}
 	}
 }

@@ -29,6 +29,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class FileLoader {
 	
+	public static String assetsDir;
+	
+	public static void setAssetsDirFromFile(File file) {
+		String fileLoc = file.getAbsolutePath();
+		if (fileLoc.contains("\\assets\\")) {
+			assetsDir = fileLoc.split("\\assets")[0] + "\\assets";
+			System.out.println("New assetsDir: " + assetsDir);
+		} else {
+			assetsDir = "";
+		}
+	}
+	
+	public static boolean checkAssetsDir() {
+		return assetsDir != null && assetsDir.equals("") && assetsDir.toLowerCase().endsWith("\\assets");
+	}
+	
 	/**
 	 * Load any texture
 	 * 
@@ -37,14 +53,15 @@ public class FileLoader {
 	 */
 	public static Texture loadTexture(String key) {
 		try {
-			return TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream(key + ".png"));
-		} catch (FileNotFoundException e) {
+			Texture ret = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream(key + ".png"));
+			if (ret == null) {
+				ret = loadTexture("null");
+			}
+			return ret;
+		} catch (Exception e) {
 			e.printStackTrace();
-			return null;
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
 		}
+		return loadTexture("null");
 	}
 	
 	/**
@@ -57,9 +74,9 @@ public class FileLoader {
 	public static Texture loadModelTexture(String key) {
 		if (key.contains(":")) {
 			final String[] splitKey = key.split("\\:");
-			return loadTexture("assets/" + splitKey[0] + "/textures/" + splitKey[1]);
+			return loadTexture(assetsDir + "/" + splitKey[0] + "/textures/" + splitKey[1]);
 		} else {
-			return loadTexture("assets/minecraft/textures/" + key);
+			return loadTexture(assetsDir + "/minecraft/textures/" + key);
 		}
 	}
 	
@@ -71,11 +88,15 @@ public class FileLoader {
 	 */
 	public static BufferedImage loadImage(String key) {
 		try {
-			return ImageIO.read(ResourceLoader.getResourceAsStream(key + ".png"));
-		} catch (IOException e) {
+			BufferedImage ret = ImageIO.read(ResourceLoader.getResourceAsStream(key + ".png"));
+			if (ret == null) {
+				ret = loadImage("null");
+			}
+			return ret;
+		} catch (Exception e) {
 			e.printStackTrace();
-			return null;
 		}
+		return loadImage("null");
 	}
 	
 	/**
@@ -87,9 +108,9 @@ public class FileLoader {
 	public static BufferedImage loadModelImage(String key) {
 		if (key.contains(":")) {
 			final String[] splitKey = key.split("\\:");
-			return loadImage("assets/" + splitKey[0] + "/textures/" + splitKey[1]);
+			return loadImage(assetsDir + "/" + splitKey[0] + "/textures/" + splitKey[1]);
 		} else {
-			return loadImage("assets/minecraft/textures/" + key);
+			return loadImage(assetsDir + "/minecraft/textures/" + key);
 		}
 	}
 	
@@ -118,6 +139,11 @@ public class FileLoader {
 			e.printStackTrace();
 			return null;
 		}
+	}
+	
+	public static String readFileString(String path) throws IOException {
+		byte[] encoded = Files.readAllBytes(Paths.get(path));
+		return new String(encoded);
 	}
 
 }

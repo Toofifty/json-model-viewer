@@ -1,6 +1,7 @@
 package me.toofifty.jmv;
 
 import java.awt.Rectangle;
+import java.io.File;
 
 import javax.swing.JFrame;
 
@@ -59,6 +60,7 @@ public class JSONModelViewer {
 	private boolean modelNeedsUpdate = false;
 	private boolean displayNeedsResize = true;
 	private boolean showFloor = true;
+	private File saveFile;
 
 	/**
 	 * Main function, init and loop
@@ -174,6 +176,8 @@ public class JSONModelViewer {
 		
 		if (this.model != null) {
 			renderer.renderModel(model);
+		} else {
+			frame.disableSaves();
 		}
 	}
 	
@@ -187,6 +191,7 @@ public class JSONModelViewer {
 		if (jsonModel != null && jsonModel != "") {
 			this.jsonModel = jsonModel;
 			this.modelNeedsUpdate = true;
+			frame.enableSaves();
 		}
 	}
 
@@ -228,8 +233,16 @@ public class JSONModelViewer {
 		return delta;
 	}
 	
-	public JFrame getFrame() {
+	public ApplicationControl getFrame() {
 		return frame;
+	}
+	
+	public File getSaveFile() {
+		return saveFile;
+	}
+	
+	public void setSaveFile(File file) {
+		this.saveFile = file;
 	}
 	
 	public Rectangle getCentreScreen(int width, int height) {
