@@ -1,6 +1,6 @@
 # JSON Model Viewer
 
-Provides a quick and easy way to display and visualize models in the dreaded .json format.
+Provides a quick and easy way to display and visualize Minecraft models in the .json format.
 
 ## Usage
 
