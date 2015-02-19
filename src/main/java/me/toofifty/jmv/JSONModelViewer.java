@@ -52,14 +52,16 @@ public class JSONModelViewer {
 	private Texture floor;
 	
 	/** Main model */
-	public Model model;
+	private Model model;
 	
 	/** New model json string */
-	private String jsonModel;
+	private String newModelString;
+	private Model newModel;
 	/** Model update flag */
 	private boolean modelNeedsUpdate = false;
 	private boolean displayNeedsResize = true;
 	private boolean showFloor = true;
+	private boolean isOrtho = false;
 	private File saveFile;
 
 	/**
@@ -84,9 +86,16 @@ public class JSONModelViewer {
 			int delta = getDelta();
 			
 			if (modelNeedsUpdate) {
-				Model newModel = new Model(FileLoader.loadJson(jsonModel));
-				if (newModel != null && newModel.getElements().size() != 0) {
+				if (newModelString != null && newModelString != "") {
+					if (FileLoader.isValidJSON(newModelString)) {
+						model = new Model(FileLoader.loadJson(newModelString));
+					}
+					newModelString = null;
+				} else if (newModel != null) {
 					model = newModel;
+					newModel = null;
+				} else {
+					model = new Model();
 				}
 				modelNeedsUpdate = false;
 			}
@@ -122,16 +131,17 @@ public class JSONModelViewer {
 
 		GL11.glEnable(GL11.GL_TEXTURE_2D);
 
-		GL11.glViewport(0, 0, frame.getWidth(), frame.getHeight());
+		//GL11.glViewport(0, 0, frame.getWidth(), frame.getHeight());
 		GL11.glMatrixMode(GL11.GL_PROJECTION);
 		GL11.glLoadIdentity();
+		
 		GLU.gluPerspective(70, (float) frame.getWidth() / (float) frame.getHeight(), 0.3F, 100);
 		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 		
 		GL11.glEnable(GL11.GL_DEPTH_TEST);
     	GL11.glEnable(GL11.GL_BLEND);
     	GL11.glEnable(GL11.GL_CULL_FACE);
-    	GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+    	//GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		
 		GL11.glClearColor(0.375F, 0.5625F, 0.75F, 1F);
 	}
@@ -148,7 +158,11 @@ public class JSONModelViewer {
 		GL11.glViewport(0, 0, width, Display.getHeight());
 		GL11.glMatrixMode(GL11.GL_PROJECTION);
 		GL11.glLoadIdentity();
-		GLU.gluPerspective(70, (float) (width) / (float) Display.getHeight(), 0.3F, 100);
+		if (isOrtho) {
+			GLU.gluPerspective(2, (float) (width) / (float) Display.getHeight(), 0.3F, 10000);
+		} else {
+			GLU.gluPerspective(70, (float) (width) / (float) Display.getHeight(), 0.3F, 100);
+		}
 		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 		displayNeedsResize = false;
 	}
@@ -182,17 +196,48 @@ public class JSONModelViewer {
 	}
 	
 	/**
-	 * Schedule a model update for the next frame
-	 * (used by ControlFrame)
+	 * Schedule model update for the next frame,
+	 * using a JSON string
 	 * 
 	 * @param jsonModel
 	 */
-	public void scheduleModelUpdate(String jsonModel) {
-		if (jsonModel != null && jsonModel != "") {
-			this.jsonModel = jsonModel;
+	public void scheduleModelUpdate(String newModelString) {
+		if (newModelString != null && newModelString != "") {
+			this.newModelString = newModelString;
 			this.modelNeedsUpdate = true;
 			frame.enableSaves();
 		}
+	}
+	
+	/**
+	 * Schedule model update for the next frame,
+	 * using a Model object
+	 * 
+	 * @param model
+	 */
+	public void scheduleModelUpdate(Model model) {
+		if (model != null) {
+			this.newModel = model;
+			this.modelNeedsUpdate = true;
+			frame.enableSaves();
+		}
+	}
+	
+	/**
+	 * Main model getter
+	 * 
+	 * @return model
+	 */
+	public Model getModel() {
+		return model;
+	}
+	
+	/**
+	 * Thread-safe model creation
+	 */
+	public void scheduleNewModel() {
+		this.modelNeedsUpdate = true;
+		frame.enableSaves();
 	}
 
 	/**
@@ -209,7 +254,21 @@ public class JSONModelViewer {
 	 */
 	public void setIso() {
 		renderer.setRY(45F); 
-		renderer.setRX(35.264F); 
+		renderer.setRX(35.264F);
+		displayNeedsResize = true;
+	}
+	
+	/**
+	 * Toggle 'ortho' (extremely small fov)
+	 */
+	public void toggleOrtho() {
+		isOrtho = !isOrtho;
+		if (isOrtho) {
+			zoom *= 40;
+		} else {
+			zoom /= 40;
+		}
+		displayNeedsResize = true;
 	}
 
 	/**
@@ -285,7 +344,10 @@ public class JSONModelViewer {
 			renderer.rotateLeft(mouse.dx() / 2F);
 		}
 		
-		scroll(-Mouse.getDWheel() / 100F);
+		float scrollAmount = Mouse.getDWheel();
+		if (scrollAmount != 0) {
+			scroll(-scrollAmount / 100F);
+		}
 	}
 
 	/**
@@ -294,7 +356,11 @@ public class JSONModelViewer {
 	 * @param delta
 	 */
 	private void scroll(float delta) {
+		if (isOrtho) {
+			delta *= 40;
+		}
 		this.zoom -= delta;
+		System.out.println(zoom);
 	}
 
 	/**

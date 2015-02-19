@@ -183,12 +183,20 @@ public class ApplicationControl extends JFrame {
 		});
 		mnView.add(mntmToggleFloor);
 		
-		JMenuItem mntmIsometric = new JMenuItem("Isometric");
+		JMenuItem mntmIsometric = new JMenuItem("Isometric angle");
 		mntmIsometric.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JSONModelViewer.instance.setIso();
 			}
 		});
+		
+		JMenuItem mntmToggleOrtho = new JMenuItem("Toggle ortho");
+		mntmToggleOrtho.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				JSONModelViewer.instance.toggleOrtho();
+			}
+		});
+		mnView.add(mntmToggleOrtho);
 		mnView.add(mntmIsometric);
 		contentPane = new JPanel();
 		contentPane.addComponentListener(new ComponentAdapter() {
@@ -680,7 +688,7 @@ public class ApplicationControl extends JFrame {
 		});
 		spTextEditor.setColumnHeaderView(btnRefreshModel);
 
-		JMenuItem mntmRefreshModel = new JMenuItem("Refresh model from JSON editor");
+		JMenuItem mntmRefreshModel = new JMenuItem("Refresh GUI");
 		mntmRefreshModel.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				SyntaxHighlighter.highlight(tpTextEditor);	
@@ -694,11 +702,11 @@ public class ApplicationControl extends JFrame {
 		});
 		mnTools.add(mntmRefreshModel);
 		
-		JMenuItem mntmPrintJsonTo = new JMenuItem("Refresh JSON");
+		JMenuItem mntmPrintJsonTo = new JMenuItem("Refresh Text Editor");
 		mntmPrintJsonTo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				try {
-					Model m = JSONModelViewer.instance.model;
+					Model m = JSONModelViewer.instance.getModel();
 					if (m != null) {
 						tpTextEditor.setText(m.getJSON());
 						SyntaxHighlighter.highlight(tpTextEditor);

@@ -104,8 +104,16 @@ public class Face {
 	 * @return uv_from + textureCoords
 	 */
 	public Vector2f getUVFrom(Vector2f textureCoords) {
-		return new Vector2f(textureCoords.x + uv_from.x / model.getAtlas().width,
-				textureCoords.y + uv_from.y / model.getAtlas().height);
+		try {
+			Model tempModel = model;
+			while (tempModel.getAtlas() == null) {
+				tempModel = tempModel.getChild();
+			}
+			return new Vector2f(textureCoords.x + uv_from.x / tempModel.getAtlas().width,
+					textureCoords.y + uv_from.y / tempModel.getAtlas().height);
+		} catch (NullPointerException e) {
+			return new Vector2f(0, 0);
+		}
 	}
 
 	/**
@@ -114,8 +122,16 @@ public class Face {
 	 * @return uv_to + textureCoords
 	 */
 	public Vector2f getUVTo(Vector2f textureCoords) {
-		return new Vector2f(textureCoords.x + uv_to.x / model.getAtlas().width,
-				textureCoords.y + uv_to.y / model.getAtlas().height);
+		try {
+			Model tempModel = model;
+			while (tempModel.getAtlas() == null) {
+				tempModel = tempModel.getChild();
+			}
+			return new Vector2f(textureCoords.x + uv_to.x / tempModel.getAtlas().width,
+					textureCoords.y + uv_to.y / tempModel.getAtlas().height);
+		} catch (NullPointerException e) {
+			return new Vector2f(1, 1);
+		}
 	}
 	
 	/**

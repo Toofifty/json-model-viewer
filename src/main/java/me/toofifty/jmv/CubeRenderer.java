@@ -4,6 +4,7 @@ import me.toofifty.jmv.model.Face;
 import me.toofifty.jmv.model.Model;
 import me.toofifty.jmv.model.Element;
 import me.toofifty.jmv.model.Element.Dir;
+import me.toofifty.jmv.model.TextureAtlas;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Vector2f;
@@ -22,6 +23,8 @@ public class CubeRenderer {
 	private float rx;
 	private float ry;
 	private float rz;
+	
+	private Texture nullTexture = FileLoader.loadTexture("null");
 	
 	/**
 	 * Apply all rotations here
@@ -65,6 +68,10 @@ public class CubeRenderer {
 	 * @param model
 	 */
 	public void renderModel(Model model) {
+		if (model.getParent() != null) {
+			//System.out.println("Parent found, rendering");
+			renderModel(model.getParent());
+		}
 		for (Element element : model.getElements()) {
 			renderModelElement(model, element);
 		}
@@ -239,7 +246,17 @@ public class CubeRenderer {
 	 * @param model
 	 */
 	public void bindModelTexture(Model model) {
-		model.getAtlas().bind();
+		if (model != null) {
+			TextureAtlas atlas = model.getAtlas();
+			if (atlas != null) {
+				model.getAtlas().bind();
+			} else {
+				bindModelTexture(model.getChild());
+				return;
+			}
+		} else {
+			nullTexture.bind();
+		}
 		setTexParemeters();
 	}
 	

@@ -73,7 +73,7 @@ public class TextureAtlas {
 		
 		try {
 			texture = BufferedImageUtil.getTexture("", atlas);
-			//ImageIO.write(atlas, "PNG", new File("atlas.png"));
+			ImageIO.write(atlas, "PNG", new File("atlas.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -87,13 +87,26 @@ public class TextureAtlas {
 	 */
 	public Vector2f getTextureCoords(Model model, String textureName) {
 		if (textureName == null) {
-			System.out.println("Null texture!");
+			System.out.println("Null texture! I give up.");
 			model.getReferenceStrings().printStrings();
 			System.exit(0);
 		}
 		final Vector2f vec = textureMap.get(textureName);
-		if (vec == null) return getTextureCoords(model, model.getReferenceStrings().getString(textureName));
+		if (vec == null) {
+			System.out.println("Couldn't find texture for " + textureName + ". Fuck.");
+			printTextures();
+		}
 		return vec;
+	}
+	
+	public void printTextures() {
+		Iterator textureIter = textureMap.entrySet().iterator(); 
+		while (textureIter.hasNext()) {
+			final Entry e = (Entry) textureIter.next();
+			final String textureName = e.getKey().toString();
+			final String textureLoc = e.getValue().toString();
+			System.out.println(textureName + " @ " + textureLoc);
+		}
 	}
 	
 	/**

@@ -17,6 +17,7 @@ import javax.swing.filechooser.FileFilter;
 
 import me.toofifty.jmv.FileLoader;
 import me.toofifty.jmv.JSONModelViewer;
+import me.toofifty.jmv.gui.ApplicationControl;
 import me.toofifty.jmv.gui.SyntaxHighlighter;
 import me.toofifty.jmv.model.Model;
 
@@ -32,12 +33,12 @@ public class EditorAction {
 	/* Helper methods */
 	
 	/**
-	 * Quickly check if a model is present or not.
+	 * Get the running instance
 	 * 
-	 * @return boolean
+	 * @return
 	 */
-	public boolean isEditingModel() {
-		return JSONModelViewer.instance.model != null;
+	public JSONModelViewer getMV() {
+		return JSONModelViewer.instance;
 	}
 	
 	/**
@@ -46,18 +47,34 @@ public class EditorAction {
 	 * @return model
 	 */
 	public Model getWorkingModel() {
-		return JSONModelViewer.instance.model;
+		return getMV().getModel();
 	}
 	
 	/**
-	 * Get the main JFrame object.
+	 * Get the main ApplicationControl object.
 	 * 
-	 * Heh. Main Frame.
-	 * 
-	 * @return JFrame
+	 * @return frame
 	 */
-	public JFrame getMainWindow() {
-		return JSONModelViewer.instance.getFrame();
+	public ApplicationControl getMainWindow() {
+		return getMV().getFrame();
+	}
+	
+	/**
+	 * Get the main text editor
+	 * 
+	 * @return text editor
+	 */
+	public JTextPane getTextEditor() {
+		return getMainWindow().getTextEditor();
+	}
+	
+	/**
+	 * Quickly check if a model is present or not.
+	 * 
+	 * @return boolean
+	 */
+	public boolean isEditingModel() {
+		return getWorkingModel() != null;
 	}
 
 	/**
@@ -73,6 +90,20 @@ public class EditorAction {
 			e.printStackTrace();
 		}
 		return "";
+	}
+	
+	/**
+	 * Update text editor with current working model
+	 */
+	public void updateTextEditor() {
+		try {
+			Model model = getMV().getModel();
+			if (model != null) {
+				getMV().getFrame().getTextEditor().setText(model.getJSON());
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/* Editor methods */
@@ -98,6 +129,43 @@ public class EditorAction {
 			}
 		}
 		System.out.println("Creating new model...");
+		
+		JFileChooser fc = showSaveFileChooser("Select save location for new model");
+
+		getMV().scheduleNewModel();
+
+		if (fc.showSaveDialog(getMainWindow()) == JFileChooser.APPROVE_OPTION) {
+			try {
+				
+				Model model = getMV().getModel();
+				String modelJson = model.getJSON();
+				
+				File f = fc.getSelectedFile();
+				String fileStr = f.getAbsolutePath();
+				
+				// Append .json if not found.
+				if (!fileStr.toLowerCase().endsWith(".json")) {
+					fileStr += ".json";
+					f = new File(f.getAbsolutePath() + ".json");
+				}
+				
+				// Save
+				PrintWriter out;
+				out = new PrintWriter(fileStr);
+				out.println(modelJson);
+				out.close();
+				System.out.println("Model saved to " + fileStr);
+				getMV().setSaveFile(f);
+				
+				FileLoader.setAssetsDirFromFile(f);
+
+				getMV().scheduleNewModel();
+				updateTextEditor();
+				SyntaxHighlighter.highlight(getTextEditor());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}		
 	}
 
 	/**
@@ -151,17 +219,15 @@ public class EditorAction {
 		fc.setFileFilter(fc.getChoosableFileFilters()[1]);
 		
 		if (fc.showOpenDialog(getMainWindow()) == JFileChooser.APPROVE_OPTION) {
-			System.out.println("GRR");
 			try {
 				File f = fc.getSelectedFile();
 				String fText = FileLoader.readFileString(f.getAbsolutePath());
-				JSONModelViewer jmv = JSONModelViewer.instance;
 				System.out.println(f.getAbsolutePath());
-				jmv.getFrame().getTextEditor().setText(fText);
-				jmv.setSaveFile(f);
+				getTextEditor().setText(fText);
+				getMV().setSaveFile(f);
 				
-				jmv.scheduleModelUpdate(fText);
-				SyntaxHighlighter.highlight(jmv.getFrame().getTextEditor());
+				getMV().scheduleModelUpdate(fText);
+				SyntaxHighlighter.highlight(getTextEditor());
 				
 				FileLoader.setAssetsDirFromFile(f);
 			} catch (IOException e) {
@@ -170,18 +236,8 @@ public class EditorAction {
 			}
 		}
 	}
-
-	/**
-	 * Save the current model through the a JFileChooser
-	 */
-	public void saveAsModel() {
-		
-		// We don't want to save if there is no model
-		if (!isEditingModel()) {
-			return;
-		}
-		System.out.println("Saving model...");
-		
+	
+	public JFileChooser showSaveFileChooser(String title) {
 		// FileChooser window
 		JFileChooser fc = new JFileChooser() {
 			@Override
@@ -208,8 +264,8 @@ public class EditorAction {
 					}
 					
 				// Potentially bad directory message
-				} else if (!(fileStr.toLowerCase().endsWith("models\\block") || 
-						fileStr.toLowerCase().endsWith("models\\block"))) {
+				} else if (!(fileStr.toLowerCase().endsWith("models/block") || 
+						fileStr.toLowerCase().endsWith("models/block"))) {
 
 					int dialogResult = JOptionPane
 							.showConfirmDialog(this,
@@ -224,10 +280,28 @@ public class EditorAction {
 			}
 		};
 		
+		fc.setDialogTitle(title);
+		
 		// Add *.json to list
 		fc.addChoosableFileFilter(new JsonSaveFilter());
 		// Set *.json to top of list
 		fc.setFileFilter(fc.getChoosableFileFilters()[1]);
+		
+		return fc;
+	}
+
+	/**
+	 * Save the current text editor string through a JFileChooser
+	 */
+	public void saveAsModel() {
+		
+		// We don't want to save if there is no model
+		if (!isEditingModel()) {
+			return;
+		}
+		System.out.println("Saving model...");
+		
+		JFileChooser fc = showSaveFileChooser("Save As...");
 		
 		if (fc.showSaveDialog(getMainWindow()) == JFileChooser.APPROVE_OPTION) {
 			try {
@@ -242,17 +316,16 @@ public class EditorAction {
 				}
 				
 				// Save
-				JTextPane jtp = JSONModelViewer.instance.getFrame().getTextEditor();
 				PrintWriter out;
 				out = new PrintWriter(fileStr);
-				out.println(jtp.getText());
+				out.println(getTextEditor().getText());
 				out.close();
 				System.out.println("Model saved to " + fileStr);
-				JSONModelViewer.instance.setSaveFile(f);
+				getMV().setSaveFile(f);
 				
 				FileLoader.setAssetsDirFromFile(f);
 				
-				JSONModelViewer.instance.scheduleModelUpdate(jtp.getText());
+				getMV().scheduleModelUpdate(getTextEditor().getText());
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
@@ -265,7 +338,7 @@ public class EditorAction {
 	 * Save to saveFile if found.
 	 */
 	public void saveModel() {
-		File saveFile = JSONModelViewer.instance.getSaveFile();
+		File saveFile = getMV().getSaveFile();
 		
 		// Save to saveFile if found
 		if (saveFile != null) {
@@ -273,9 +346,8 @@ public class EditorAction {
 				
 				// Save
 				PrintWriter out;
-				JTextPane jtp = JSONModelViewer.instance.getFrame().getTextEditor();
 				out = new PrintWriter(saveFile);
-				out.println(jtp.getText());
+				out.println(getTextEditor().getText());
 				out.close();
 				
 			} catch (FileNotFoundException e) {

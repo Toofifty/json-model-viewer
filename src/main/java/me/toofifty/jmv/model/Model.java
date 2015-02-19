@@ -35,14 +35,17 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class Model {
 	
 	private String parent;
+	private Model parentModel;
+	private Model childModel;
 	private boolean ambientOcclusion = true;
-	//private HashMap<String, BufferedImage> imageMap = new HashMap<String, BufferedImage>();	
 	private HashMap<String, String> textureStringMap = new HashMap<>();
 	private TextureAtlas texture;
 	private List<Element> elements = new ArrayList<>();
 	private ReferenceStrings refStrings = new ReferenceStrings();
 	
 	/**
+	 * MUST BE CALLED WITHIN OPENGL CONTEXT
+	 * 
 	 * Loads a model from a JsonNode.
 	 * 
 	 * @param rootNode
@@ -53,10 +56,50 @@ public class Model {
 		}		
 		final JsonNode parentNode = rootNode.path("parent");
 		if (parentNode != null && parentNode.toString() != "") {
-			parent = parentNode.toString(); // model-level parent, won't change
-			loadParent(parent);
+			parent = parentNode.toString().replace("\"", ""); // model-level parent, won't change
+			parentModel = loadParent(parent);
 		}
 		loadModel(rootNode);
+	}
+	
+	/**
+	 * MUST BE CALLED WITHIN OPENGL CONTEXT
+	 * 
+	 * Used to make parent models.
+	 * 
+	 * @param child, rootNode
+	 */
+	public Model(Model child, JsonNode rootNode) {
+		if (rootNode == null) {
+			return;
+		}
+		childModel = child;
+		final JsonNode parentNode = rootNode.path("parent");
+		if (parentNode != null && parentNode.toString() != "") {
+			parent = parentNode.toString().replace("\"", "");
+			parentModel = loadParent(parent);
+		}
+		loadModel(rootNode);
+	}
+	
+	/**
+	 * MUST BE CALLED WITHIN OPENGL CONTEXT
+	 * 
+	 * Loads the default model (brick)
+	 * Example JSON
+	 * {
+	 *   "parent" : "block/cube_all",
+	 *   "textures" : {
+	 *     "all" : "blocks/brick"
+	 *   }
+	 * }
+	 */
+	public Model() {
+		parent = "block/cube_all";
+		loadParent(parent);
+		
+		textureStringMap.put("all", "blocks/brick");
+		texture = new TextureAtlas(textureStringMap);
 	}
 	
 	/**
@@ -71,19 +114,17 @@ public class Model {
 	 * 
 	 * @param parentPath
 	 */
-	protected void loadParent(String parentPath) {
+	protected Model loadParent(String parentPath) {
+		parentPath = parentPath.replace("\"", "");
 		System.out.println("Loading parent " + parentPath + "...");
-		final String path = "assets/minecraft/models/" + parentPath.substring(1, parentPath.length() - 1) + ".json";
+		final String path = "assets/minecraft/models/" + parentPath + ".json";
 		final ObjectMapper m = new ObjectMapper();
 		try {
 			final JsonNode rootNode = m.readTree(new File(path));
-			final JsonNode parentNode = rootNode.path("parent");
-			if (parentNode != null && parentNode.toString() != "") {
-				loadParent(parentNode.toString());
-			}
-			loadModel(rootNode);
+			return new Model(this, rootNode);
 		} catch (IOException e) {
 			e.printStackTrace();
+			return null;
 		}
 	}
 	
@@ -95,6 +136,7 @@ public class Model {
 	 */
 	protected void loadModel(JsonNode rootNode) {
 		System.out.println("Loading model...");
+		System.out.println("Node: " + rootNode.toString());
 		
 		final JsonNode textureNode = rootNode.path("textures");
 		if (textureNode != null && textureNode.size() != 0 && this.texture == null) {
@@ -272,15 +314,58 @@ public class Model {
 	}
 	
 	public List<Element> getElements() {
-		return this.elements;
+		return elements;
+	}
+	
+	public Model getParent() {
+		return parentModel;
+	}
+	
+	public Model getChild() {
+		return childModel;
 	}
 	
 	public TextureAtlas getAtlas() {
 		return texture;
 	}
 	
+	public String getReference(String var) {
+		//System.out.println("Looking for reference " + var + ".");
+		String ret = refStrings.getString(var);
+		if (ret == null) {
+			if (this.childModel == null) {
+				String mapOut = textureStringMap.get(var);
+				if (mapOut != null) {
+					//System.out.println("Managed to find " + mapOut);
+					//System.out.println("Returning input (" + var + ")");
+					return var;
+				}
+				System.out.println("A texture is missing for a face that requires it! SHIT!");
+				System.out.println("Missing texture/ref: " + var);
+				return null;
+			}
+			return this.childModel.getReference(var);
+		}
+		//System.out.println("Found reference! " + ret);
+		return ret;
+	}
+	
 	public Vector2f getTextureCoords(Face face) {
-		return texture.getTextureCoords(this, face.getTexture());
+		return getTextureCoords(face.getTexture());
+	}
+	
+	public Vector2f getTextureCoords(String face) {
+		//System.out.println("Looking for " + face + " coords...");
+		//refStrings.printStrings();
+		if (texture == null) {
+			// If no texture is found, must be ref string to another!
+			//System.out.println("Null texture, checking child");
+			if (this.childModel == null) {
+				return new Vector2f(0, 0);
+			}
+			return this.childModel.getTextureCoords(getReference(face));
+		}
+		return texture.getTextureCoords(this, face);
 	}
 	
 	public ReferenceStrings getReferenceStrings() {
